@@ -49,15 +49,37 @@ include::profiles.adoc[]
 * Start Address
 
 ==== Interrupt Controller
-* AIA
-* PLIC + CLINT
-* Interrupt Assignments
+===== AIA[[AIA]]
+===== PLIC[DEPRECATED][[PLIC]]
+The Platform Level Interrupt Controller (PLIC) provides facilities to route
+the non-local interrupts to the external interrupt of a hart context
+with a given privilege mode in a given hart. The number of non-local interrupt
+sources supported by PLIC and how does each of them connect to the hart
+context is PLIC core implementation-specific. +
+(Refer to https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc[RISC-V PLIC Specification]
+for the implementation reference of PLIC operation parameters)
+
+===== CLINT[[CLINT]]
+On the contrast to PLIC, the Core Local Interrupt (CLINT) provides
+facilities to trigger local interrupt of <<MachineModeTimer,Machine mode timer>> to hart.
+
+===== Interrupt Assignments
 
 ==== System Peripherals
-* UART/Serial Console
-* Clocks
-* Timers
-* Watchdog Timers
+===== UART/Serial Console
+===== Clocks
+===== Timers
+
+===== Machine Mode Timer[[MachineModeTimer]]
+Machine mode timer is required for Linux-2022 platform and incorporate with
+<<CLINT,CLINT>> to trigger the timer event to hart. The format of Machine mode timer operation parameters
+(`mtime` and `mtimecmp` registers) must compliant with RISC-V Privilege specification section 3.1.10.
+The base address of the memory map registers of Machine mode timer is platform implementation-specific,
+however the offset of `mtime` and `mtimecmp` registers are fixed as
+<<machineModeTimerRegs,Machine mode timer registers>>.
+
+
+===== Watchdog Timers
 
 ==== Boot Process
 * Firmware
@@ -289,9 +311,8 @@ Any RISC-V system that uses at least RV32/64G can meet the Embedded-2022
 specification.
 
 ==== Interrupt Controller
-Embedded systems are recommended to use a spec compliant
-https://github.com/riscv/riscv-plic-spec[PLIC], a spec compliant
-https://github.com/riscv/riscv-fast-interrupt/blob/master/clic.adoc[CLIC]
+Embedded systems are recommended to use a spec compliant <<PLIC,PLIC>>, a spec
+compliant https://github.com/riscv/riscv-fast-interrupt/blob/master/clic.adoc[CLIC]
 or both a CLIC and and PLIC.
 
 If using just a PLIC the system must continue to use the original basic
@@ -303,38 +324,9 @@ must be supported.
 Embedded systems cannot use a non-compliant interrupt controller and still
 call it a PLIC or CLIC.
 
-==== Machine Timer
-The RISC-V machine timer (controlled via `mtime` and `mtimecmp`) must be
-implemented. The two registers must be memory mapped as required by the RISC-V
-specification.
-
-The Embedded-2022 specification requires that the registers be mapped
-adjacent to each other with the `mtime` region at the lower address.
-
-The starting address of this region can be located anywhere in
-memory, including inside other peripherals, as long as the start address is
-4 byte aligned.
-
-An example of the memory layout for a 32-bit system with a single hart is below
-
--------------------------
-=========================
-| 0x00 |  mtime low     |
-| 0x04 |  mtime high    |
-| 0x08 |  mtimecmp low  |
-| 0x0C |  mtimecmp high |
-=========================
--------------------------
-
-and for a 64-bit system with 2 harts
-
----------------------------
-===========================
-| 0x00 |  mtime           |
-| 0x08 |  mtimecmp hart 1 |
-| 0x10 |  mtimecmp hart 2 |
-===========================
----------------------------
+==== Machine Mode Timer
+The Embedded-2022 specification requires RISC-V <<MachineModeTimer,Machine mode timer>> to be implemented.
+The Machine mode timer could be incorporated with the Core Local Interrupt (<<CLINT, CLINT>>) or the specific event trigger mechanism according to the platform design.
 
 ==== Memory Map
 It is recommended that main memory and loadable code (not ROM) start at
@@ -348,6 +340,34 @@ also implement PMP support.
 When PMP is supported it is recommended to include at least 4 regions, although
 if possible more should be supported to allow more flexibility. Hardware
 implementations should aim for supporting at least 16 PMP regions.
+
+// Appendix sections
+== Appendix
+=== Machine Mode Timer Registers [[MachineModeTimerRegs]]
+The base address of Machine mode timer operation parameters is platform implementation-specific. The Machine mode timer compare registers (`mtimecmp`) for each hart is located at offset 0 and the layout is organized as below table.
+
+.Registers layout of mtimecmp
+[width="60%",cols="1,^3,^3"]
+|=======
+|*Offset*|*Register (8-byte) for RV64*|*Register (4-byte) for RV32*
+|`0x0000` |mtimecmp for hart 0 |mtimecmp low for hart 0
+|`0x0004` ||mtimecmp high for hart 0
+|`0x0008` |mtimecmp for hart 1 |mtimecmp low for hart 1
+|`0x000c` ||mtimecmp high for hart 1
+|... ||
+|`0x7ff0` |mtimecmp for hart 4094|mtimecmp low for hart 4094
+|`0x7ff4` ||mtimecmp high for hart 4094
+|=======
+
+The Machine mode timer counter (`mtime`) is located at offset 0x7ff8 from the base address of operation parameters.
+
+.Registers layout of mtime
+[width="60%",cols="1,^3,^3"]
+|=======
+|*Offset*|*Register (8-byte) for RV64*|*Register (4-byte) for RV32*
+|`0x7ff8` |mtime|mtime low
+|`0x7ffc` ||mtime high
+|=======
 
 // acknowledge all of the contributors
 include::contributors.adoc[]
