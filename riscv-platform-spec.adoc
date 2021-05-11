@@ -245,8 +245,15 @@ implemented but it can return EFI_UNSUPPORTED.
 implemented but it can return EFI_UNSUPPORTED.
 |===
 
+====== Management Mode
+====== UEFI Platform Runtime Mechanism
+* PRM Module
+* ACPI PRMT Table
+* Enhanced PMP Shared Memory Region
+
 ==== System Peripherals
 * PCI-E
+* Real Time Clock
 
 ==== Secure Boot
 * TEE
