@@ -79,9 +79,24 @@ include::profiles.adoc[]
 * Start Address
 
 ==== Interrupt Controller
-* AIA
-* PLIC + CLINT
-* Interrupt Assignments
+===== AIA[[AIA]]
+===== PLIC[DEPRECATED][[PLIC]]
+The Platform Level Interrupt Controller (PLIC) provides facilities to route
+the non-local interrupts to the external interrupt of a hart context
+with a given privilege mode in a given hart. The number of non-local interrupt
+sources supported by PLIC and how does each of them connect to the hart
+context is PLIC core implementation-specific. +
+(Refer to https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc[RISC-V PLIC Specification]
+for the implementation reference of PLIC operation parameters)
+
+===== ACLINT
+Linux-2020 platform requires the Advanced Core Local Interruptor (ACLINT,
+refer to
+https://github.com/riscv/riscv-aclint/blob/master/riscv-aclint.adoc[RISC-V ACLINT Specification])
+to provide facilities to route inter-processor interrupt and Machine mode timer
+interrupt to each RISC-V processor hart.
+
+===== Interrupt Assignments
 
 ==== System Peripherals
 * UART/Serial Console
@@ -406,8 +421,8 @@ Any RISC-V system that uses at least RV32/64G can meet the Embedded-2022
 specification.
 
 ==== Interrupt Controller
-Embedded systems are recommended to use a spec compliant
-https://github.com/riscv/riscv-plic-spec[PLIC], a spec compliant
+Embedded systems are recommended to use a spec compliant <<PLIC,PLIC>>,
+a spec compliant
 https://github.com/riscv/riscv-fast-interrupt/blob/master/clic.adoc[CLIC]
 or both a CLIC and and PLIC.
 
